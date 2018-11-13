@@ -21,21 +21,21 @@ func main() {
 	for msg := range rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
-			go respond(ev)
+			go respond(ev, rtm)
 		}
 	}
 }
 
-func respond(ev *slack.MessageEvent) {
+func respond(ev *slack.MessageEvent, rtm *slack.RTM) {
 	text := ev.Msg.Text
 
 	switch text {
-	case "Hello":
-		slackClient.PostMessage(ev.User, slack.MsgOptionText("Hello", true))
+	case "Hey":
+		rtm.SendMessage(rtm.NewOutgoingMessage("Hey", ev.Channel))
 	case "Show me a dog":
-		slackClient.PostMessage(ev.Channel, slack.MsgOptionText(getDog(), true))
+		rtm.SendMessage(rtm.NewOutgoingMessage(getDog(), ev.Channel))
 	default:
-		slackClient.PostMessage(ev.User, slack.MsgOptionText("Sorry, i don't know that command", false))
+		rtm.SendMessage(rtm.NewOutgoingMessage("Sorry, i don't know that command", ev.Channel))
 
 	}
 }
