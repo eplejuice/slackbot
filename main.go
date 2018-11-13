@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/nlopes/slack"
@@ -28,10 +31,44 @@ func respond(ev *slack.MessageEvent) {
 
 	switch text {
 	case "Hei":
-
 		slackClient.PostMessage(ev.User, slack.MsgOptionText("Hei", true))
+	case "Show me a dog":
+		slackClient.PostMessage(ev.User, slack.MsgOptionText(getDadJoke(), true))
 	default:
-		slackClient.PostMessage(ev.User, slack.MsgOptionText("Sorry, i don't know", false))
+		slackClient.PostMessage(ev.User, slack.MsgOptionText("Sorry, i don't know that command", false))
 
 	}
+}
+
+func getDadJoke() string {
+	type dogs struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}
+
+	/*
+		url := "https://icanhazdadjoke.com/"
+		client := &http.Client{}
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Set("content-type", "application/json")
+		res, _ := client.Do(req)
+		fmt.Println(res.Body)
+	*/
+
+	resp, err := http.Get("https://dog.ceo/api/breeds/image/random")
+	if err != nil {
+		fmt.Printf("Got no joke")
+		panic(err)
+	}
+
+	//fmt.Println(resp.Body)
+	defer resp.Body.Close()
+
+	dog := &dogs{}
+	err = json.NewDecoder(resp.Body).Decode(dog)
+	if err != nil {
+		fmt.Println("Error decoding json")
+		panic(err)
+	}
+	return dog.Message
 }
