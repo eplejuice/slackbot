@@ -30,30 +30,21 @@ func respond(ev *slack.MessageEvent) {
 	text := ev.Msg.Text
 
 	switch text {
-	case "Hei":
-		slackClient.PostMessage(ev.User, slack.MsgOptionText("Hei", true))
+	case "Hello":
+		slackClient.PostMessage(ev.User, slack.MsgOptionText("Hello", true))
 	case "Show me a dog":
-		slackClient.PostMessage(ev.User, slack.MsgOptionText(getDadJoke(), true))
+		slackClient.PostMessage(ev.Channel, slack.MsgOptionText(getDog(), true))
 	default:
 		slackClient.PostMessage(ev.User, slack.MsgOptionText("Sorry, i don't know that command", false))
 
 	}
 }
 
-func getDadJoke() string {
+func getDog() string {
 	type dogs struct {
 		Status  string `json:"status"`
 		Message string `json:"message"`
 	}
-
-	/*
-		url := "https://icanhazdadjoke.com/"
-		client := &http.Client{}
-		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Set("content-type", "application/json")
-		res, _ := client.Do(req)
-		fmt.Println(res.Body)
-	*/
 
 	resp, err := http.Get("https://dog.ceo/api/breeds/image/random")
 	if err != nil {
