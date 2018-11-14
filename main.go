@@ -30,10 +30,7 @@ var AS = AnimalShelter{
 }
 
 func main() {
-	fmt.Println("Connecting to DB")
 	AS.Connect()
-	fmt.Println("Connection success")
-
 	slackClient = slack.New(os.Getenv("SLACK_ACCESS_TOKEN"))
 	rtm := slackClient.NewRTM()
 	go rtm.ManageConnection()
@@ -48,11 +45,11 @@ func main() {
 
 func (m *AnimalShelter) Connect() {
 	session := &mgo.DialInfo{
-		Addrs:    []string{"ds261253.mlab.com:61253"},
+		Addrs:    []string{m.Address},
 		Timeout:  60 * time.Second,
-		Database: "animalshelter",
-		Username: "admin",
-		Password: "notpassord1",
+		Database: m.Database,
+		Username: m.Username,
+		Password: m.Password,
 	}
 
 	connection, err := mgo.DialWithInfo(session)
@@ -102,31 +99,32 @@ func (m *AnimalShelter) DeleteAll() (*mgo.ChangeInfo, error) {
 func Respond(ev *slack.MessageEvent, rtm *slack.RTM) {
 	text := ev.Msg.Text
 	text = strings.ToLower(text)
-
 	switch {
 	case strings.Contains(text, "hey"):
-		rtm.SendMessage(rtm.NewOutgoingMessage("Hey", ev.Channel))
-		break
+		rtm.SendMessage(rtm.NewOutgoingMessage(HelloThere(ev, rtm), ev.Channel))
 	case strings.Contains(text, "show me"):
 		rtm.SendMessage(rtm.NewOutgoingMessage(ShowDog(), ev.Channel))
-		break
 	case strings.Contains(text, "add"):
 		rtm.SendMessage(rtm.NewOutgoingMessage(AddDog(), ev.Channel))
-		break
 	case strings.Contains(text, "adopt"):
 		rtm.SendMessage(rtm.NewOutgoingMessage(AdoptDog(), ev.Channel))
-		break
 	case strings.Contains(text, "how many"):
 		rtm.SendMessage(rtm.NewOutgoingMessage(getCount(), ev.Channel))
 	case strings.Contains(text, "show all"):
 		ShowAllDogs(ev, rtm)
-	default:
-		rtm.SendMessage(rtm.NewOutgoingMessage("Sorry, i don't know that command", ev.Channel))
+	case strings.Contains(text, "help"):
+		HelpFunc(ev, rtm)
+		rtm.SendMessage(rtm.NewOutgoingMessage("Sorry, i don't know that command, try 'Help' for a list of commands", ev.Channel))
 	}
 }
 
+func HelloThere(ev *slack.MessageEvent, etm *slack.RTM) string {
+	returnString :=
+		"https://media1.tenor.com/images/242ce12decbb1275829ec8e387990d17/tenor.gif?itemid=5312368"
+	return returnString
+}
+
 func getCount() string {
-	fmt.Println("Getting count")
 	dogCount, err := AS.FindCount()
 	if err != nil {
 		panic(err)
@@ -139,7 +137,6 @@ func getCount() string {
 }
 
 func ShowDog() string {
-	fmt.Println("Getting Dog")
 	type dogs struct {
 		Status  string `json:"status"`
 		Message string `json:"message"`
@@ -228,4 +225,9 @@ func ShowAllDogs(ev *slack.MessageEvent, rtm *slack.RTM) {
 		rtm.SendMessage(rtm.NewOutgoingMessage(dogs[i].Picture, ev.Channel))
 	}
 
+}
+
+func HelpFunc(ev *slack.MessageEvent, rtm *slack.RTM) {
+	giveHelp := "Available commands: \n Hey - Say hello to the bot \n Show me - Shows a picture of a random dog \n Add dog - Adds a random dog to the shelter \n Adopt dog - Adopt a dog from the shelter \n How many - Gives a count of how many dogs are currently in the shelter \n Show all - Shows a picture of all dogs currently in the shelter \n "
+	rtm.SendMessage(rtm.NewOutgoingMessage(giveHelp, ev.Channel))
 }
