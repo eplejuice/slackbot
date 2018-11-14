@@ -1,2 +1,2 @@
 # slackbot
-Trying to make a slackbot that fetches responses from various APIs with golang
+trying to make a slackbot which controls a mongodb in golang
