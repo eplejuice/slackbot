@@ -11,6 +11,5 @@ type AnimalShelter struct {
 
 type Dog struct {
 	ID      bson.ObjectId `bson:"_id"`
-	Name    string        `bson:"name" json:"name"`
 	Picture string        `bson:"picture" json:"picture"`
 }
